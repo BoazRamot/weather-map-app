@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.4.0/dist/leaflet.css"
+          integrity="sha512-puBpdR0798OZvTTbP4A8Ix/l+A4dHDD0DGqYW6RQ+9jxkRFclaxxQb/SJAWZfWAkuyeQUytO7+7N4QKrDh+drA=="
+          crossorigin=""/>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <title>Title</title>
+    <style>
+        main {
+            margin: 10px;
+        }
+
+        #mapid {
+            height: 400px;
+        }
+
+        table {
+            /*width: 200px;*/
+        }
+
+        select {
+            /*margin: auto 0px;*/
+        }
+    </style>
+</head>
+<body>
+    <header class="jumbotron text-center">
+        <h1 class="display-5">Open Weather Map</h1>
+    </header>
+    <main>
+        <div class="card-deck my-2">
+            <div class="card col-md-4">
+                <div class="card-header">
+                    Select A City:
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless">
+                        <thead></thead>
+                        <tbody>
+                        <tr>
+                            <th class="">Select City</th>
+                            <td colspan="2">
+                                <select class="mx-auto" id="citySelect">
+                                    <option value="london" selected>London</option>
+                                    <option value="paris" >Paris</option>
+                                    <option value="madrid" >Madrid</option>
+                                    <option value="brussels" >Brussels</option>
+                                    <option value="amsterdam" >Amsterdam</option>
+                                    <option value="munich" >Munich</option>
+                                    <option value="zurich" >Zurich</option>
+                                    <option value="roma" >Roma</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th class="align-middle">Description</th>
+                            <td id="description"></td>
+                            <td rowspan="4" id="icon"></td>
+                        </tr>
+                        <tr>
+                            <th class="align-middle">Wind</th>
+                            <td id="wind"></td>
+                        </tr>
+                        <tr>
+                            <th>Temperature</th>
+                            <td class="" id="temperature"></td>
+                        </tr>
+                        <tr>
+                            <th>Humidity</th>
+                            <td id="humidity"></td>
+                        </tr>
+                        </tbody>
+                        <tfoot></tfoot>
+                    </table>
+                </div>
+            </div>
+            <div class="card col-md-8">
+                <div class="card-header">
+                    Select A City:
+                </div>
+                <div class="card-body">
+                    <div id="mapid"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <script src="https://unpkg.com/leaflet@1.4.0/dist/leaflet.js"
+            integrity="sha512-QVftwZFqvtRNi0ZyCtsznlKSWOStnDORoefr1enyq5mVL4tmKB3S/EnC3rRJcxCPavG10IcrVGSmPh6Qw5lwrg=="
+            crossorigin=""></script>
+    <script src="index.js"></script>
+</body>
+</html>
