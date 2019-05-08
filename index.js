@@ -1,28 +1,23 @@
 'use strict';
 
-const redIcon = new L.Icon({
-    iconUrl: './marker-icon-red.png',
-    shadowUrl: './marker-shadow.png',
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowSize: [41, 41]
-});
-
-let mymap;
-let marker;
-let lastCity;
-const citySelect = document.getElementById('citySelect');
 const cities = new Map();
+const citySelect = document.getElementById('citySelect');
 
 window.addEventListener('load', () => {
     ['london', 'paris', 'madrid', 'brussels', 'amsterdam', 'munich', 'zurich', 'roma'].forEach((city) => {
-        getCityData(city);
+        fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&APPID=9de0b5dc4332f5818dd67f6cb4cdb06a`)
+            .then(res => res.json())
+            .then(myJson => {
+                cities.set(city, new City(myJson));
+                addCitiesToMap(city);
+                showDefaultCity();
+            });
     });
 });
 
 citySelect.addEventListener('change', citySelector);
 
+//Hold specific city data for weather api to be used in map and DOM
 class City {
     constructor(city) {
         this._coord = city.coord;
@@ -30,13 +25,13 @@ class City {
         this._updateTime = new Date();
         this._description = city.weather[0].description;
         this._icon = city.weather[0].icon;
-        this._wind = `speed ${city.wind.speed}, degrees ${city.wind.deg}\xB0`;
+        this._wind = `${city.wind.speed} m/s, ${city.wind.deg}\xB0`;
         this._temperature = `${Math.round(city.main.temp)} &#8451`;
         this._humidity = `${city.main.humidity}%`;
     }
     set description(city) { this._description = city.weather[0].description; }
     set icon(city) { this._icon = city.weather[0].icon; }
-    set wind(city) { this._wind = `speed ${city.wind.speed}, degrees ${city.wind.deg}\xB0`; }
+    set wind(city) { this._wind = `${city.wind.speed} m/s, ${city.wind.deg}\xB0`; }
     set temperature(city) { this._temperature = `${Math.round(city.main.temp)} &#8451`; }
     set humidity(city) { this._humidity = `${city.main.humidity}%`; }
     set updateTime(updateTime) { this._updateTime = updateTime; }
@@ -54,6 +49,53 @@ class City {
     get name() { return this._name; }
 }
 
+//Hold Map Data and change Map Display
+class MapObj {
+    constructor() {
+        this._mymap = null;
+        this._marker = null;
+        this._lastCity = null;
+        this._redIcon = new L.Icon({
+            iconUrl: './marker-icon-red.png',
+            shadowUrl: './marker-shadow.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
+        });
+    }
+
+    addMap(city) {
+        this._mymap = L.map('mapid');
+
+        L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+            attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+            maxZoom: 18,
+            id: 'mapbox.streets',
+            accessToken: 'pk.eyJ1IjoiYm9henJhbW90IiwiYSI6ImNqdWxpN29xbjExZnczeW5xZG81b3RsYWwifQ.SzkxgoG8ZgMtXFYTuSA1BA'
+        }).addTo(this._mymap);
+
+        this._marker = L.marker([city.lat, city.lon]).on('click', clickCitySelector).addTo(this._mymap);
+        city.marker = this._marker;
+    }
+
+    addLocation(city) {
+        this._marker = L.marker([city.lat, city.lon]).on('click', clickCitySelector).addTo(this._mymap);
+        city.marker = this._marker;
+    }
+
+    showLocation(city) {
+        this._mymap.setView([city.lat, city.lon], 12);
+        city.marker = L.marker([city.lat, city.lon], {icon: this._redIcon}).addTo(this._mymap);
+        this._lastCity = city;
+    }
+
+    previousCity() {
+        this._lastCity.marker = L.marker([this._lastCity.lat, this._lastCity.lon]).on('click', clickCitySelector).addTo(this._mymap);
+    }
+}
+const mapObj = new MapObj();
+
 function showWeather(city) {
     document.getElementById('description').innerHTML = city.description;
     document.getElementById('icon').innerHTML = `<img alt="" src="http://openweathermap.org/img/w/${city.icon}.png">`;
@@ -62,50 +104,17 @@ function showWeather(city) {
     document.getElementById('humidity').innerHTML = city.humidity;
 }
 
-function addMap(city) {
-    mymap = L.map('mapid');
-
-    L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
-        attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
-        maxZoom: 18,
-        id: 'mapbox.streets',
-        accessToken: 'pk.eyJ1IjoiYm9henJhbW90IiwiYSI6ImNqdWxpN29xbjExZnczeW5xZG81b3RsYWwifQ.SzkxgoG8ZgMtXFYTuSA1BA'
-    }).addTo(mymap);
-
-    marker = L.marker([city.lat, city.lon]).on('click', clickCitySelector).addTo(mymap);
-
-    city.marker = marker;
+function addCitiesToMap(cityName) {
+    if (cities.size === 1) {
+        mapObj.addMap(cities.get(cityName));
+    } else {
+        mapObj.addLocation(cities.get(cityName));
+    }
 }
 
-function addLocation(city) {
-    marker = L.marker([city.lat, city.lon]).on('click', clickCitySelector).addTo(mymap);
-    city.marker = marker;
-}
-
-function getCityData(cityName) {
-    fetch(`https://api.openweathermap.org/data/2.5/weather?q=${cityName}&units=metric&APPID=9de0b5dc4332f5818dd67f6cb4cdb06a`)
-        .then(res => res.json())
-        .then(myJson => {
-            cities.set(cityName, new City(myJson));
-
-            if (cities.size === 1) {
-                addMap(cities.get(cityName));
-            } else {
-                addLocation(cities.get(cityName));
-            }
-
-            if (cityName === 'london') {
-                showWeather(cities.get(cityName));
-                showLocation(cities.get(cityName));
-            }
-
-        });
-}
-
-function showLocation(city) {
-    mymap.setView([city.lat, city.lon], 12);
-    city.marker = L.marker([city.lat, city.lon], {icon: redIcon}).addTo(mymap);
-    lastCity = city;
+function showDefaultCity(defaultCity = 'london') {
+    showWeather(cities.get(defaultCity));
+    mapObj.showLocation(cities.get(defaultCity));
 }
 
 function weatherDataIsObsolete(selectedCity) {
@@ -128,10 +137,6 @@ function updateWeatherData(selectedCity) {
 
 }
 
-function previousCity() {
-    lastCity.marker = L.marker([lastCity.lat, lastCity.lon]).on('click', clickCitySelector).addTo(mymap);
-}
-
 function clickCitySelector() {
     const latLng = this.getLatLng();
     let name;
@@ -142,8 +147,7 @@ function clickCitySelector() {
         }
     });
 
-    const cityArray = [...citySelect.options];
-    cityArray.forEach(city => {
+    [...citySelect.options].forEach(city => {
         if (city.text === name) {
             city.selected = true;
         }
@@ -158,6 +162,6 @@ function citySelector() {
         updateWeatherData(selectedCity);
     }
     showWeather(cities.get(selectedCity));
-    previousCity();
-    showLocation(cities.get(selectedCity));
+    mapObj.previousCity();
+    mapObj.showLocation(cities.get(selectedCity));
 }

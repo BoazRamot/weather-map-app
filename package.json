@@ -1,0 +1,24 @@
+{
+  "name": "weather-map-app",
+  "version": "1.0.0",
+  "description": "Weather app with map location",
+  "main": "server.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "ts-node server.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BoazRamot/weather-map-app.git"
+  },
+  "author": "Boaz Ramot <boaz.ramot@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/BoazRamot/weather-map-app/issues"
+  },
+  "homepage": "https://github.com/BoazRamot/weather-map-app#readme",
+  "dependencies": {
+    "@types/http-server": "^0.10.0",
+    "@types/lodash": "^4.14.123"
+  }
+}
